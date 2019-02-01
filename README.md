@@ -22,3 +22,14 @@ LWJGL requires a JDK and Ant installed to compile, as well as your platforms nat
 * ant generate-all
 * ant compile
 * ant compile_native
+
+ARM Prerequisites
+-----------
+* Debian recommended over Ubuntu for multiarch
+* `apt install gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf gcc-aarch64-linux-gnu g++-aarch64-linux-gnu`
+* `dpkg --add-architecture armel`
+* `dpkg --add-architecture armhf`
+* `dpkg --add-architecture arm64`
+* `apt install openjdk-8-jdk-headless:armel libx11-dev:armel libxrandr-dev:armel libxext-dev:armel libxcursor-dev:armel libxxf86vm-dev:armel`
+* `apt install openjdk-8-jdk-headless:armhf libx11-dev:armhf libxrandr-dev:armhf libxext-dev:armhf libxcursor-dev:armhf libxxf86vm-dev:armhf`
+* `apt install openjdk-8-jdk-headless:arm64 libx11-dev:arm64 libxrandr-dev:arm64 libxext-dev:arm64 libxcursor-dev:arm64 libxxf86vm-dev:arm64`
