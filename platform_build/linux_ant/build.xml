@@ -4,14 +4,23 @@
 	<property name="native" location="../../src/native"/>
 	<property name="libname32" value="liblwjgl.so"/>
 	<property name="libname64" value="liblwjgl64.so"/>
+	<property name="libnamearmgnueabi32" value="liblwjglarmgnueabi.so"/>
+	<property name="libnamearmgnueabihf32" value="liblwjglarmgnueabihf.so"/>
+	<property name="libnamearm64" value="liblwjglarm64.so"/>
 	<property name="libs32" value="-L/usr/X11R6/lib -L/usr/X11/lib -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L${java.home}/lib/i386 -ljawt" />
 	<property name="libs64" value="-L/usr/X11R6/lib64 -L/usr/X11/lib64 -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L${java.home}/lib/amd64 -ljawt" />
+	<property name="libsarmgnueabi32" value="-L/usr/X11R6/lib -L/usr/X11/lib -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L/usr/lib/jvm/java-8-openjdk-armel/lib/arm -ljawt" />
+	<property name="libsarmgnueabihf32" value="-L/usr/X11R6/lib -L/usr/X11/lib -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L/usr/lib/jvm/java-8-openjdk-armhf/lib/arm -ljawt" />
+	<property name="libsarm64" value="-L/usr/X11R6/lib -L/usr/X11/lib -lm -lX11 -lXext -lXcursor -lXrandr -lXxf86vm -lpthread -L/usr/lib/jvm/java-8-openjdk-arm64/lib/aarch64 -ljawt" />
 	<property name="cflags32" value="-O2 -Wall -c -fPIC -std=c99 -Wunused"/>
 
 	<target name="clean">
 		<delete>
 			<fileset dir="x32"/>
 			<fileset dir="x64"/>
+			<fileset dir="armgnueabi32"/>
+			<fileset dir="armgnueabihf32"/>
+			<fileset dir="arm64"/>
 			<fileset dir="." includes="*.o"/>
 			<fileset dir="." includes="*.so"/>
 		</delete>
@@ -38,6 +47,9 @@
 
 		<property name="linker_flags32" value="${version_script_flags32} -shared -O2 -Wall -o ${libname32} ${libs32}"/>
 		<property name="linker_flags64" value="${version_script_flags64} -shared -O2 -Wall -o ${libname64} ${libs64}"/>
+		<property name="linker_flagsarmgnueabi32" value="${version_script_flags32} -shared -O2 -Wall -o ${libnamearmgnueabi32} ${libsarmgnueabi32}"/>
+		<property name="linker_flagsarmgnueabihf32" value="${version_script_flags32} -shared -O2 -Wall -o ${libnamearmgnueabihf32} ${libsarmgnueabihf32}"/>
+		<property name="linker_flagsarm64" value="${version_script_flags32} -shared -O2 -Wall -o ${libnamearm64} ${libsarm64}"/>
 
     	<condition property="build.32bit.only">
     		<not>
@@ -56,11 +68,14 @@
     		</and>
     	</condition>
 
-    	<antcall target="compile32"/>
-    	<antcall target="compile64"/>
+<!--    	<antcall target="compile32"/>
+    	<antcall target="compile64"/>-->
+    	<antcall target="compilearmgnueabi32"/>
+    	<antcall target="compilearmgnueabihf32"/>
+    	<antcall target="compilearm64"/>
     </target>
 
-    <target name="compile32" unless="build.64bit.only">
+    <target name="compile32">
     	<mkdir dir="x32"/>
     	<apply dir="x32" executable="gcc" skipemptyfilesets="true" failonerror="true" parallel="true">
 			<arg line="${cflags32} ${cflags_pthread}"/>
@@ -92,7 +107,7 @@
 		</apply>
     </target>
 
-    <target name="compile64" unless="build.32bit.only">
+    <target name="compile64">
     	<mkdir dir="x64"/>
     	<apply dir="x64" executable="gcc" skipemptyfilesets="true" failonerror="true" parallel="true">
 			<arg line="${cflags64} ${cflags_pthread}"/>
@@ -121,6 +136,102 @@
 		</apply>
 		<apply dir="." parallel="true" executable="strip" failonerror="true">
 			<fileset file="${libname64}"/>
+		</apply>
+    </target>
+
+    <target name="compilearmgnueabi32">
+    	<mkdir dir="armgnueabi32"/>
+    	<apply dir="armgnueabi32" executable="arm-linux-gnueabi-gcc" skipemptyfilesets="true" failonerror="true" parallel="true">
+			<arg line="${cflags32} ${cflags_pthread}"/>
+			<arg value="-I${java.home}/include"/>
+			<arg value="-I${java.home}/include/linux"/>
+			<arg value="-I${java.home}/../include"/>
+			<arg value="-I${java.home}/../include/linux"/>
+			<arg value="-I${java.home}/../include/solaris"/>
+			<arg value="-I${native}/common"/>
+		    <arg value="-I${native}/common/opengl"/>
+			<arg value="-I${native}/linux"/>
+		    <arg value="-I${native}/linux/opengl"/>
+			<mapper type="glob" from="*.c" to="*.o"/>
+		    <fileset dir="${native}/common" includes="*.c"/>
+		    <fileset dir="${native}/common/opengl" includes="*.c"/>
+		    <fileset dir="${native}/generated/openal" includes="*.c"/>
+		    <fileset dir="${native}/generated/opencl" includes="*.c"/>
+		    <fileset dir="${native}/generated/opengl" includes="*.c"/>
+		    <fileset dir="${native}/linux" includes="*.c"/>
+		    <fileset dir="${native}/linux/opengl" includes="*.c"/>
+	    </apply>
+		<apply dir="." parallel="true" executable="arm-linux-gnueabi-gcc" failonerror="true">
+			<srcfile/>
+			<arg line="${linker_flagsarmgnueabi32}"/>
+			<fileset dir="armgnueabi32" includes="*.o"/>
+		</apply>
+		<apply dir="." parallel="true" executable="arm-linux-gnueabi-strip" failonerror="true">
+			<fileset file="${libnamearmgnueabi32}"/>
+		</apply>
+    </target>
+
+    <target name="compilearmgnueabihf32">
+    	<mkdir dir="armgnueabihf32"/>
+    	<apply dir="armgnueabihf32" executable="arm-linux-gnueabihf-gcc" skipemptyfilesets="true" failonerror="true" parallel="true">
+			<arg line="${cflags32} ${cflags_pthread}"/>
+			<arg value="-I${java.home}/include"/>
+			<arg value="-I${java.home}/include/linux"/>
+			<arg value="-I${java.home}/../include"/>
+			<arg value="-I${java.home}/../include/linux"/>
+			<arg value="-I${java.home}/../include/solaris"/>
+			<arg value="-I${native}/common"/>
+		    <arg value="-I${native}/common/opengl"/>
+			<arg value="-I${native}/linux"/>
+		    <arg value="-I${native}/linux/opengl"/>
+			<mapper type="glob" from="*.c" to="*.o"/>
+		    <fileset dir="${native}/common" includes="*.c"/>
+		    <fileset dir="${native}/common/opengl" includes="*.c"/>
+		    <fileset dir="${native}/generated/openal" includes="*.c"/>
+		    <fileset dir="${native}/generated/opencl" includes="*.c"/>
+		    <fileset dir="${native}/generated/opengl" includes="*.c"/>
+		    <fileset dir="${native}/linux" includes="*.c"/>
+		    <fileset dir="${native}/linux/opengl" includes="*.c"/>
+	    </apply>
+		<apply dir="." parallel="true" executable="arm-linux-gnueabihf-gcc" failonerror="true">
+			<srcfile/>
+			<arg line="${linker_flagsarmgnueabihf32}"/>
+			<fileset dir="armgnueabihf32" includes="*.o"/>
+		</apply>
+		<apply dir="." parallel="true" executable="arm-linux-gnueabihf-strip" failonerror="true">
+			<fileset file="${libnamearmgnueabihf32}"/>
+		</apply>
+    </target>
+
+    <target name="compilearm64">
+    	<mkdir dir="arm64"/>
+    	<apply dir="arm64" executable="aarch64-linux-gnu-gcc" skipemptyfilesets="true" failonerror="true" parallel="true">
+			<arg line="${cflags32} ${cflags_pthread}"/>
+			<arg value="-I${java.home}/include"/>
+			<arg value="-I${java.home}/include/linux"/>
+			<arg value="-I${java.home}/../include"/>
+			<arg value="-I${java.home}/../include/linux"/>
+			<arg value="-I${java.home}/../include/solaris"/>
+			<arg value="-I${native}/common"/>
+		    <arg value="-I${native}/common/opengl"/>
+			<arg value="-I${native}/linux"/>
+		    <arg value="-I${native}/linux/opengl"/>
+			<mapper type="glob" from="*.c" to="*.o"/>
+		    <fileset dir="${native}/common" includes="*.c"/>
+		    <fileset dir="${native}/common/opengl" includes="*.c"/>
+		    <fileset dir="${native}/generated/openal" includes="*.c"/>
+		    <fileset dir="${native}/generated/opencl" includes="*.c"/>
+		    <fileset dir="${native}/generated/opengl" includes="*.c"/>
+		    <fileset dir="${native}/linux" includes="*.c"/>
+		    <fileset dir="${native}/linux/opengl" includes="*.c"/>
+	    </apply>
+		<apply dir="." parallel="true" executable="aarch64-linux-gnu-gcc" failonerror="true">
+			<srcfile/>
+			<arg line="${linker_flagsarm64}"/>
+			<fileset dir="arm64" includes="*.o"/>
+		</apply>
+		<apply dir="." parallel="true" executable="aarch64-linux-gnu-strip" failonerror="true">
+			<fileset file="${libnamearm64}"/>
 		</apply>
     </target>
 </project>
